@@ -1,0 +1,20 @@
+{
+  "name": "blogspot-archiver",
+  "version": "1.0.0",
+  "main": "src/bin/blogArchiver.js",
+  "scripts": {
+    "test": ""
+  },
+  "keywords": [],
+  "author": "",
+  "bin": {
+    "blogArchiver": "./src/bin/blogArchiver.js"
+  },
+  "files": ["./src"],
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "download": "^8.0.0",
+    "fs": "^0.0.1-security"
+  }
+}
