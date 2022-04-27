@@ -17,7 +17,7 @@ module.exports = class Archive {
      * @param {*} args
      * @returns
      */
-    async init(url, path, key, template, args) {
+    async init(url, path, key, args) {
         this.blogUrl = url;
         this.key = key;
         this.args = args;
@@ -25,7 +25,7 @@ module.exports = class Archive {
 
         return new Promise(async (res, rej) => {
             //WIP
-        
+
             let json = await this.downloader.getBlog(url, this.key).catch((e) => rej(e));
 
             if (json.id == undefined) {
@@ -67,8 +67,8 @@ module.exports = class Archive {
     async getPosts(url, nextPageToken) {
         let limit = false;
 
-        if (this.args.l.data.used) {
-            let l = parseInt(this.args.l.data.argument);
+        if (this.args.l.used) {
+            let l = parseInt(this.args.l.data);
             if (isNaN(l)) {
                 console.log("Invalid limit argument");
                 process.exit();
@@ -179,7 +179,7 @@ module.exports = class Archive {
         let pageName = pageData.url.split("/").pop().split(".")[0];
 
         if (fs.existsSync(`${this.path}/${this.name}/posts/${pageName}/${pageName}.json`))
-        return console.log("Page already exists: " + pageName);
+            return console.log("Page already exists: " + pageName);
 
         console.log("Parsing page: " + pageName);
 
@@ -249,7 +249,7 @@ module.exports = class Archive {
 
         console.log("Creating post html");
 
-      //  let post = this.postHandler.createPost(postData, parsedPost);
+        //  let post = this.postHandler.createPost(postData, parsedPost);
         let post = parsedPost.content;
 
         if (!fs.existsSync(`${this.path}/${this.name}/posts/${postName}`))
@@ -261,7 +261,7 @@ module.exports = class Archive {
 
         let postjson = { data: postData, parsed: parsedPost };
 
-        if (this.args.r.data.used) {
+        if (this.args.r.used) {
             let hasNextPage = "a";
 
             let json = { items: [] };

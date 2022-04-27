@@ -66,12 +66,8 @@ module.exports = class requestManager {
                 let path = filename.split("/");
                 path.pop();
                 if (!fs.existsSync(path)) fs.mkdirSync(path.join("/"), { recursive: true });
-
                 stream = fs.createWriteStream(filename);
-                fileStats = fs.statSync(filename);
             }
-
-            let processedAmount = 0;
 
             let req = https.request(options, (res) => {
                 res.on(
@@ -83,13 +79,8 @@ module.exports = class requestManager {
                     (d) => {
                         if (!filename) data = data + d;
                         else {
-                            if (fileStats.size >= processedAmount + d.length) console.log("t");
-                            else if (processedAmount + d.length - fileStats.size >= d.length)
-                                stream.write(d);
-                            else stream.write(d.slice(processedAmount + d.length - fileStats.size));
+                            stream.write(d);
                         }
-
-                        processedAmount = processedAmount + d.length;
                     }
                 );
             });

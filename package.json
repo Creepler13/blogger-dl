@@ -8,7 +8,7 @@
   "keywords": [],
   "author": "",
   "bin": {
-    "bloggerdl": "./src/bin/blogArchiver.js"
+    "blogger-dl": "./src/bin/blogArchiver.js"
   },
   "files": [
     "./src"
