@@ -2,14 +2,10 @@
 const Archive = require("../archive.js");
 const fs = require("fs");
 const Downloader = require("../requestManager.js");
-const { Console } = require("console");
+
+let helpText = fs.readFileSync("src/bin/help.txt",{encoding:"utf-8"});
 
 let downloader = new Downloader();
-let key = require("./key.json").key;
-
-if (process.argv.length < 3) {
-    help();
-}
 
 const args = {
     command: process.argv[2],
@@ -21,6 +17,7 @@ const args = {
     po: { needsArgument: false, data: { used: false, argument: undefined } },
     r: { needsArgument: false, data: { used: false, argument: undefined } },
     l: { needsArgument: true, data: { used: false, argument: undefined } },
+    key: { needsArgument: true, data: { used: false, argument: undefined } },
 };
 
 for (let index = 3; index < process.argv.length; index++) {
@@ -60,8 +57,21 @@ switch (args.command) {
         break;
 }
 
+function getKey() {
+    if (args.key.data.used) return args.key.data.argument;
+    else if (fs.existsSync("./key.json")) {
+        let key = require("./key.json");
+        if (key.key) return JSON.parse(key).key;
+    } else {
+        console.log(
+            "Please set your Api-Key with the command 'blogArchiver setKey <key> or use the -key <key> flag \n(if you do not have one please look at the Api-Key section in the readme/github page)"
+        );
+        process.exit();
+    }
+}
+
 function help() {
-    console.log("hep");
+    console.log(helpText);
     process.exit();
 }
 
@@ -77,11 +87,13 @@ function setKey() {
 }
 
 async function bloginfo() {
+    let key = getKey();
+
     if (args.nonminus == "") help();
 
     let archive = new Archive();
 
-    let json = await archive.init(args.nonminus, undefined, key, undefined,args);
+    let json = await archive.init(args.nonminus, undefined, key, undefined, args);
 
     console.log(json.name);
     console.log("Type: " + json.kind);
@@ -90,10 +102,7 @@ async function bloginfo() {
 }
 
 async function archive() {
-    if (key == "") {
-        console.log("Please set your api key with > blogArchiver setKey <key>");
-        process.exit();
-    }
+    let key = getKey();
 
     try {
         if (args.nonminus == "") help();
@@ -102,7 +111,7 @@ async function archive() {
 
         let archive = new Archive();
 
-        let blog = await archive.init(args.nonminus, path, key, args.t.data.argument,args);
+        let blog = await archive.init(args.nonminus, path, key, args.t.data.argument, args);
 
         console.log("Blog found");
         console.log("---------------------------------");
