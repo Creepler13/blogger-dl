@@ -17,7 +17,28 @@ module.exports = class requestManager {
                 rej(err);
             });
 
-            res(JSON.parse(data));
+            let blog = JSON.parse(data);
+
+            if (blog.error) {
+                rej(blog.error);
+                return;
+            }
+
+            let post = await this.fetch(
+                `https://www.googleapis.com/blogger/v3/blogs/${blog.id}/posts/bypath?path=${urlDATA.pathname}&key=${key}`
+            ).catch((err) => {
+                //not a post returning just a blog
+                res(blog);
+            });
+
+            let postJson = JSON.parse(post);
+
+            if (postJson.error) res(blog);
+            else {
+                blog.post = postJson;
+
+                res(blog);
+            }
         });
     }
 
@@ -57,8 +78,6 @@ module.exports = class requestManager {
              * @type {fs.WriteStream} stream
              */
             let stream;
-
-            let fileStats;
 
             if (filename) {
                 let path = filename.split("/");

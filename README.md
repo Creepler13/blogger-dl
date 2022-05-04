@@ -46,10 +46,11 @@ Options:
             -override       overrides already downloaded posts/pages
             -css <file>     applies css from selected file to posts/pages
     Api-key:
-            -key <api-key>  used to set api-key ! needed if no api-key is saved !
+            -key <api-key>  used to set api-key (needed if no api-key is saved!)
             -save-key       if used supplied api-key will be saved and used if no new key is supllied with -key
     Filtering:
             -limit <amount> limits the amount of posts/pages downloaded
+            -search <query> searches for posts
             -no-posts       skips downloading posts
             -no-pages       skips downloading pages
             -no-media       skips downloading media and keeps them linked to the remote location
