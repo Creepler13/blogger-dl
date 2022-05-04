@@ -1,14 +1,12 @@
 const fs = require("fs");
 const https = require("https");
-const { urlToHttpOptions } = require("url");
-const { DefaultDeserializer } = require("v8");
 
 module.exports = class requestManager {
     async getBlog(url, key) {
         return new Promise(async (res, rej) => {
             let urlDATA;
             try {
-                urlDATA = urlToHttpOptions(new URL(url));
+                urlDATA = new URL(url);
             } catch (err) {
                 rej(err);
             }
@@ -45,10 +43,10 @@ module.exports = class requestManager {
         if (!method) options.method = "GET";
         else options.method = method;
 
-        let urlDATA = urlToHttpOptions(new URL(url));
+        let urlDATA = new URL(url);
 
         options.hostname = urlDATA.hostname;
-        options.path = urlDATA.path;
+        options.path = urlDATA.pathname + urlDATA.search;
 
         //  console.log(options);
 
