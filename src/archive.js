@@ -34,7 +34,6 @@ module.exports = class Archive {
             }
 
             this.name = json.name;
-
             res(json);
         });
     }
@@ -198,14 +197,24 @@ module.exports = class Archive {
 
         if (!this.args["no-media"].used)
             for (const key in parsedPage.media.images) {
-                console.log("Downloading image: " + key);
+                if (
+                    !fs.existsSync(
+                        `${this.path}/${this.name}/pages/${pageName}/media/images/${
+                            parsedPage.media.images[key].id
+                        }.${key.split(".").pop()}`
+                    )
+                ) {
+                    console.log("Downloading image: " + key);
 
-                await this.downloader.fetch(
-                    parsedPage.media.images[key].links[0],
-                    `${this.path}/${this.name}/pages/${pageName}/media/images/${
-                        parsedPage.media.images[key].id
-                    }.${key.split(".").pop()}`
-                );
+                    await this.downloader.fetch(
+                        parsedPage.media.images[key].links[0],
+                        `${this.path}/${this.name}/pages/${pageName}/media/images/${
+                            parsedPage.media.images[key].id
+                        }.${key.split(".").pop()}`
+                    );
+                } else {
+                    console.log("Image already exists: " + key);
+                }
             }
 
         console.log("Creating page html");
@@ -260,14 +269,24 @@ module.exports = class Archive {
 
         if (!this.args["no-media"].used)
             for (const key in parsedPost.media.images) {
-                console.log("Downloading image: " + key);
+                if (
+                    !fs.existsSync(
+                        `${this.path}/${this.name}/posts/${postName}/media/images/${
+                            parsedPost.media.images[key].id
+                        }.${key.split(".").pop()}`
+                    )
+                ) {
+                    console.log("Downloading image: " + key);
 
-                await this.downloader.fetch(
-                    parsedPost.media.images[key].links[0],
-                    `${this.path}/${this.name}/posts/${postName}/media/images/${
-                        parsedPost.media.images[key].id
-                    }.${key.split(".").pop()}`
-                );
+                    await this.downloader.fetch(
+                        parsedPost.media.images[key].links[0],
+                        `${this.path}/${this.name}/posts/${postName}/media/images/${
+                            parsedPost.media.images[key].id
+                        }.${key.split(".").pop()}`
+                    );
+                } else {
+                    console.log("Image already exists: " + key);
+                }
             }
 
         console.log("Creating post html");
@@ -332,21 +351,58 @@ module.exports = class Archive {
         console.log("");
     }
 
-    async archivePosts(blogJSON) {
-        let posts = await this.getPosts(blogJSON.posts.selfLink);
+    async searchPosts(blog, query, nextPageToken) {
+        let limit = false;
 
-        if (posts.items)
-            for (let index = 0; index < posts.items.length; index++) {
-                await this.addPost(posts.items[index]);
+        if (this.args.limit.used) {
+            let l = parseInt(this.args.limit.data);
+            if (isNaN(l)) {
+                console.log("Invalid limit argument");
+                process.exit();
+            } else {
+                limit = l;
+            }
+        }
+
+        if (!nextPageToken)
+            console.log(
+                "Searching posts with query: " + query + (limit ? " (limit: " + limit + ")" : "")
+            );
+
+        let searched = await this.downloader.fetch(
+            `https://www.googleapis.com/blogger/v3/blogs/${blog.id}/posts/search?q=${query}&key=${
+                this.key
+            }&maxResults=${!limit ? 500 : limit}` +
+                (nextPageToken ? `&pageToken=${nextPageToken}` : "")
+        );
+
+        let json = JSON.parse(searched);
+
+        if (json.nextPageToken && (limit ? json.items.length < limit : true))
+            json.items = [
+                ...json.items,
+                ...(await this.searchPosts(blog, query, json.nextPageToken)),
+            ];
+
+        if (nextPageToken) return json.items;
+
+        console.log("Posts found: " + json.items.length);
+        console.log("");
+
+        return json;
+    }
+
+    async archivePosts(posts) {
+        if (posts)
+            for (let index = 0; index < posts.length; index++) {
+                await this.addPost(posts[index]);
             }
     }
 
-    async archivePages(blogJSON) {
-        let pages = await this.getPages(blogJSON.pages.selfLink);
-
-        if (pages.items)
-            for (let index = 0; index < pages.items.length; index++) {
-                await this.addPage(pages.items[index]);
+    async archivePages(pages) {
+        if (pages)
+            for (let index = 0; index < pages.length; index++) {
+                await this.addPage(pages[index]);
             }
     }
 

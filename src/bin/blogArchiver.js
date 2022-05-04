@@ -18,6 +18,7 @@ const args = {
     "no-media": { needsArgument: false, data: undefined, used: false },
     "save-key": { needsArgument: false, data: undefined, used: false },
     css: { needsArgument: true, data: undefined, used: false },
+    search: { needsArgument: true, data: undefined, used: false },
     args: [],
 };
 
@@ -103,6 +104,26 @@ async function archive() {
 
         let blog = await archive.init(args.args[0], path, key, args, help);
 
+        if (blog.post) {
+            console.log("Post found");
+
+            console.log("");
+
+            console.log("Creating Archive");
+            console.log("---------------------------------");
+            await archive.createArchive(blog);
+            console.log("---------------------------------");
+
+            console.log("");
+
+            console.log("Downloading post");
+            console.log("---------------------------------");
+            await archive.addPost(blog.post);
+            console.log("---------------------------------");
+
+            process.exit();
+        }
+
         console.log("Blog found");
         console.log("---------------------------------");
         console.log(blog.name);
@@ -121,16 +142,20 @@ async function archive() {
         console.log("");
 
         if (!args["no-posts"].used) {
-            console.log("Archieving posts");
+            console.log("Downloading posts");
             console.log("---------------------------------");
-            await archive.archivePosts(blog);
+            let posts;
+            if (args.search.used) posts = await archive.searchPosts(blog, args.search.data);
+            else posts = await archive.getPosts(blog.posts.selfLink);
+            await archive.archivePosts(posts.items);
             console.log("---------------------------------");
         }
 
-        if (!args["no-pages"].used) {
-            console.log("Archieving pages");
+        if (!args["no-pages"].used && !args.search.used) {
+            console.log("Downloading pages");
             console.log("---------------------------------");
-            await archive.archivePages(blog);
+            let pages = await archive.getPages(blog.pages.selfLink);
+            await archive.archivePages(pages.items);
             console.log("---------------------------------");
         }
 

@@ -6,6 +6,11 @@ Usage:
         blogger-dl <url> [options]
         blogger-dl <url> <path> [options]
 
+Example: 
+        for whole blog: 
+                blogger-dl https://blogger-developers.googleblog.com/ -key <api-key>
+        for single post:
+                 blogger-dl https://blogger-developers.googleblog.com/2012/06/blogger-api-v3.html -key <api-key>
 Options:
     General:
             -info           shows blog info without downloading
@@ -16,6 +21,7 @@ Options:
             -save-key       if used supplied api-key will be saved and used if no new key is supllied with -key    
     Filtering:
             -limit <amount> limits the amount of posts/pages downloaded 
+            -search <query> searches for posts 
             -no-posts       skips downloading posts       
             -no-pages       skips downloading pages
             -no-media       skips downloading media and keeps them linked to the remote location
