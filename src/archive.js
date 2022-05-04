@@ -1,8 +1,6 @@
 const fs = require("fs");
-const { threadId } = require("worker_threads");
 const Parser = require("./parser.js");
 const Downloader = require("./requestManager.js");
-
 module.exports = class Archive {
     constructor() {
         this.downloader = new Downloader();
