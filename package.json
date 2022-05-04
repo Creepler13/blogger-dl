@@ -11,7 +11,7 @@
     "blogger-dl": "./src/bin/blogArchiver.js"
   },
   "files": [
-    "./src"
+    "src/"
   ],
   "license": "ISC",
   "description": "blogger-dl is a downloader for all blogs using the blogger API",
