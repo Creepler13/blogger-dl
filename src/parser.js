@@ -8,7 +8,7 @@ module.exports = class Parser {
      * @param {String} archivePath
      * @returns
      */
-    parseContent(content, postName, blogUrl) {
+    parseContent(content, postName, blogUrl, args) {
         let hoster = "";
 
         hoster = new URL(blogUrl).hostname;
@@ -69,28 +69,30 @@ module.exports = class Parser {
         for (const key in parsedContent.hrefs) {
             parsedContent.hrefs[key].forEach((link) => {
                 if (!new URL(link).pathname.startsWith("/p"))
-                    parsedContent.content = parsedContent.content.replace(
-                        new RegExp(`${link}`, "g"),
-                        `../../posts/${key}/${key}.html`
-                    );
-                else
-                    parsedContent.content = parsedContent.content.replace(
-                        new RegExp(`${link}`, "g"),
-                        `../../pages/${key}/${key}.html`
-                    );
+                    if (!args["no-posts"].used)
+                        parsedContent.content = parsedContent.content.replace(
+                            new RegExp(`${link}`, "g"),
+                            `../../posts/${key}/${key}.html`
+                        );
+                    else if (!args["no-pages"].used)
+                        parsedContent.content = parsedContent.content.replace(
+                            new RegExp(`${link}`, "g"),
+                            `../../pages/${key}/${key}.html`
+                        );
             });
         }
 
-        for (const key in parsedContent.media.images) {
-            parsedContent.media.images[key].links.forEach((link) => {
-                parsedContent.content = parsedContent.content.replace(
-                    new RegExp(`${link}`, "g"),
-                    `../${postName}/media/images/${parsedContent.media.images[key].id}.${key
-                        .split(".")
-                        .pop()}`
-                );
-            });
-        }
+        if (!args["no-media"].used)
+            for (const key in parsedContent.media.images) {
+                parsedContent.media.images[key].links.forEach((link) => {
+                    parsedContent.content = parsedContent.content.replace(
+                        new RegExp(`${link}`, "g"),
+                        `../${postName}/media/images/${parsedContent.media.images[key].id}.${key
+                            .split(".")
+                            .pop()}`
+                    );
+                });
+            }
 
         return parsedContent;
     }
