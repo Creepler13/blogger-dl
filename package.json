@@ -5,8 +5,8 @@
   "scripts": {
     "test": ""
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["cli", "blogger", "downloader","archive","archiver","blog","dl"],
+  "author": "Creepler13",
   "bin": {
     "blogger-dl": "./src/bin/blogArchiver.js"
   },
@@ -14,7 +14,7 @@
     "./src"
   ],
   "license": "ISC",
-  "description": "",
+  "description": "blogger-dl is a downloader for all blogs using the blogger API",
   "dependencies": {
     "fs": "^0.0.1-security",
     "https": "^1.0.0"
