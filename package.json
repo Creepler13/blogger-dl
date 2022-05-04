@@ -1,5 +1,5 @@
 {
-  "name": "blogspot-archiver",
+  "name": "blogger-dl",
   "version": "1.0.0",
   "main": "src/bin/blogArchiver.js",
   "scripts": {
@@ -8,9 +8,11 @@
   "keywords": [],
   "author": "",
   "bin": {
-    "blogArchiver": "./src/bin/blogArchiver.js"
+    "blogger-dl": "./src/bin/blogArchiver.js"
   },
-  "files": ["./src"],
+  "files": [
+    "./src"
+  ],
   "license": "ISC",
   "description": "",
   "dependencies": {

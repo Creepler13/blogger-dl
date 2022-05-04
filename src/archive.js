@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { threadId } = require("worker_threads");
 const Parser = require("./parser.js");
 const Downloader = require("./requestManager.js");
 
@@ -17,15 +18,16 @@ module.exports = class Archive {
      * @param {*} args
      * @returns
      */
-    async init(url, path, key, template, args) {
+    async init(url, path, key, args, help) {
         this.blogUrl = url;
         this.key = key;
         this.args = args;
         this.path = path;
+        this.help = help;
 
         return new Promise(async (res, rej) => {
             //WIP
-        
+
             let json = await this.downloader.getBlog(url, this.key).catch((e) => rej(e));
 
             if (json.id == undefined) {
@@ -58,6 +60,11 @@ module.exports = class Archive {
                 }
             });
 
+            if (this.args.css.used)
+                if (fs.existsSync(this.args.css.data))
+                    fs.copyFileSync(this.args.css.data, `${this.path}/${this.name}/style.css`);
+                else this.help(`\ncss file ${this.args.css.data} not found\n`);
+
             fs.writeFileSync(`${this.path}/${this.name}/blog.json`, JSON.stringify(blogJSON));
 
             res();
@@ -67,8 +74,8 @@ module.exports = class Archive {
     async getPosts(url, nextPageToken) {
         let limit = false;
 
-        if (this.args.l.data.used) {
-            let l = parseInt(this.args.l.data.argument);
+        if (this.args.limit.used) {
+            let l = parseInt(this.args.limit.data);
             if (isNaN(l)) {
                 console.log("Invalid limit argument");
                 process.exit();
@@ -178,23 +185,30 @@ module.exports = class Archive {
     async addPage(pageData) {
         let pageName = pageData.url.split("/").pop().split(".")[0];
 
-        if (fs.existsSync(`${this.path}/${this.name}/posts/${pageName}/${pageName}.json`))
-        return console.log("Page already exists: " + pageName);
+        if (!this.args.override.used)
+            if (fs.existsSync(`${this.path}/${this.name}/posts/${pageName}/${pageName}.json`))
+                return console.log("Page already exists: " + pageName);
 
         console.log("Parsing page: " + pageName);
 
-        let parsedPage = this.parser.parseContent(pageData.content, pageName, this.blogUrl);
+        let parsedPage = this.parser.parseContent(
+            pageData.content,
+            pageName,
+            this.blogUrl,
+            this.args
+        );
 
-        for (const key in parsedPage.media.images) {
-            console.log("Downloading image: " + key);
+        if (!this.args["no-media"].used)
+            for (const key in parsedPage.media.images) {
+                console.log("Downloading image: " + key);
 
-            await this.downloader.fetch(
-                parsedPage.media.images[key].links[0],
-                `${this.path}/${this.name}/pages/${pageName}/media/images/${
-                    parsedPage.media.images[key].id
-                }.${key.split(".").pop()}`
-            );
-        }
+                await this.downloader.fetch(
+                    parsedPage.media.images[key].links[0],
+                    `${this.path}/${this.name}/pages/${pageName}/media/images/${
+                        parsedPage.media.images[key].id
+                    }.${key.split(".").pop()}`
+                );
+            }
 
         console.log("Creating page html");
 
@@ -204,16 +218,20 @@ module.exports = class Archive {
         if (!fs.existsSync(`${this.path}/${this.name}/pages/${pageName}`))
             fs.mkdirSync(`${this.path}/${this.name}/pages/${pageName}`, { recursive: true });
 
+        if (this.args.css.used)
+            page = `<link rel="stylesheet" href="../../style.css"></link>` + page;
+
         fs.writeFileSync(`${this.path}/${this.name}/pages/${pageName}/${pageName}.html`, page);
 
         delete parsedPage.content;
 
         let pagejson = { data: pageData, parsed: parsedPage };
 
-        fs.writeFileSync(
-            `${this.path}/${this.name}/pages/${pageName}/${pageName}.json`,
-            JSON.stringify(pagejson)
-        );
+        if (this.args["page-json"])
+            fs.writeFileSync(
+                `${this.path}/${this.name}/pages/${pageName}/${pageName}.json`,
+                JSON.stringify(pagejson)
+            );
 
         console.log("");
     }
@@ -229,39 +247,46 @@ module.exports = class Archive {
     async addPost(postData) {
         let postName = postData.url.split("/").pop().split(".")[0];
 
-        if (fs.existsSync(`${this.path}/${this.name}/posts/${postName}/${postName}.json`))
-            return console.log("Post already exists: " + postName);
+        if (!this.args.override.used)
+            if (fs.existsSync(`${this.path}/${this.name}/posts/${postName}/${postName}.json`))
+                return console.log("Post already exists: " + postName);
 
         console.log("Parsing post: " + postName);
 
-        let parsedPost = this.parser.parseContent(postData.content, postName, this.blogUrl);
+        let parsedPost = this.parser.parseContent(
+            postData.content,
+            postName,
+            this.blogUrl,
+            this.args
+        );
 
-        for (const key in parsedPost.media.images) {
-            console.log("Downloading image: " + key);
+        if (!this.args["no-media"].used)
+            for (const key in parsedPost.media.images) {
+                console.log("Downloading image: " + key);
 
-            await this.downloader.fetch(
-                parsedPost.media.images[key].links[0],
-                `${this.path}/${this.name}/posts/${postName}/media/images/${
-                    parsedPost.media.images[key].id
-                }.${key.split(".").pop()}`
-            );
-        }
+                await this.downloader.fetch(
+                    parsedPost.media.images[key].links[0],
+                    `${this.path}/${this.name}/posts/${postName}/media/images/${
+                        parsedPost.media.images[key].id
+                    }.${key.split(".").pop()}`
+                );
+            }
 
         console.log("Creating post html");
 
-      //  let post = this.postHandler.createPost(postData, parsedPost);
-        let post = parsedPost.content;
+        let post = '<div class="content">' + parsedPost.content + "</div>";
 
         if (!fs.existsSync(`${this.path}/${this.name}/posts/${postName}`))
             fs.mkdirSync(`${this.path}/${this.name}/posts/${postName}`, { recursive: true });
 
-        fs.writeFileSync(`${this.path}/${this.name}/posts/${postName}/${postName}.html`, post);
+        if (this.args.css.used)
+            post = `<link rel="stylesheet" href="../../style.css"></link>` + post;
 
         delete parsedPost.content;
 
         let postjson = { data: postData, parsed: parsedPost };
 
-        if (this.args.r.data.used) {
+        if (this.args.replies.used) {
             let hasNextPage = "a";
 
             let json = { items: [] };
@@ -279,6 +304,18 @@ module.exports = class Archive {
                 hasNextPage = json.nextPageToken;
             }
 
+            post = post + "<br /><div class='replies'>";
+            json.items.forEach((reply) => {
+                post = post + `<div class="reply">`;
+
+                post = post + `<div class="replyUser"> ${reply.author.displayName} </div>`;
+                post = post + `<div class="replyContent"> ${reply.content} </div>`;
+
+                post = post + `</div>`;
+            });
+
+            post = post + "</div>";
+
             if (json.items.length != 0)
                 fs.writeFileSync(
                     `${this.path}/${this.name}/posts/${postName}/replies.json`,
@@ -286,10 +323,15 @@ module.exports = class Archive {
                 );
         }
 
-        fs.writeFileSync(
-            `${this.path}/${this.name}/posts/${postName}/${postName}.json`,
-            JSON.stringify(postjson)
-        );
+        if (this.args["post-json"])
+            fs.writeFileSync(
+                `${this.path}/${this.name}/posts/${postName}/${postName}.json`,
+                JSON.stringify(postjson)
+            );
+
+        fs.writeFileSync(`${this.path}/${this.name}/posts/${postName}/${postName}.html`, post);
+
+        console.log("");
     }
 
     async archivePosts(blogJSON) {
