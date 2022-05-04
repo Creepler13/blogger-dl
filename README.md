@@ -10,6 +10,14 @@ it saves all posts and pages and links all oulinks to the locally saved files. (
 -   nodejs
 -   blogger api key ([how to get a key](#api-key))
 
+## Installation
+
+The programm has to be installed globally, so thet npm can add it as a cli command
+
+```bash
+npm install blogger-dl -g
+```
+
 ## Api-Key
 
 Step 1: go to https://developers.google.com/blogger/docs/3.0/using and scroll down to the Get key button
@@ -60,6 +68,5 @@ The css option will copy the copy into the Blog folder and link every post/page 
 ```bash
 -css <file>
 ```
-
 
 ## Filtering (WIP)
