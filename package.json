@@ -1,6 +1,6 @@
 {
   "name": "blogger-dl",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "src/bin/blogArchiver.js",
   "scripts": {
     "test": ""
@@ -13,6 +13,7 @@
   "files": [
     "src/"
   ],
+  "repository": "https://github.com/Creepler13/blogger-dl.git",
   "license": "ISC",
   "description": "blogger-dl is a downloader for all blogs using the blogger API",
   "dependencies": {
