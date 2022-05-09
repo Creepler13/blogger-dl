@@ -40,11 +40,17 @@ Usage:
         blogger-dl <url> [options]
         blogger-dl <url> <path> [options]
 
+Example:
+        for whole blog:
+                blogger-dl https://blogger-developers.googleblog.com/ -key <api-key>
+        for single post:
+                 blogger-dl https://blogger-developers.googleblog.com/2012/06/blogger-api-v3.html -key <api-key>
 Options:
     General:
             -info           shows blog info without downloading
             -override       overrides already downloaded posts/pages
             -css <file>     applies css from selected file to posts/pages
+            -json           creates a json file for every post/page
     Api-key:
             -key <api-key>  used to set api-key (needed if no api-key is saved!)
             -save-key       if used supplied api-key will be saved and used if no new key is supllied with -key

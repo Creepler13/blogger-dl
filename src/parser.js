@@ -8,7 +8,7 @@ module.exports = class Parser {
      * @param {String} archivePath
      * @returns
      */
-    parseContent(content, postName, blogUrl, args) {
+    parseContent(content, postName, blogUrl, args, popalist) {
         let hoster = "";
 
         hoster = new URL(blogUrl).hostname;
@@ -66,19 +66,36 @@ module.exports = class Parser {
             }
         }
 
+        if (!popalist.pages) popalist.pages = { labels: { none: [] } };
+        if (!popalist.posts) popalist.posts = { labels: { none: [] } };
+        if (!popalist.pages.labels) popalist.pages.labels = { none: [] };
+        if (!popalist.posts.labels) popalist.posts.labels = { none: [] };
+
         for (const key in parsedContent.hrefs) {
             parsedContent.hrefs[key].forEach((link) => {
-                if (!new URL(link).pathname.startsWith("/p"))
-                    if (!args["no-posts"].used)
+                if (
+                    Object.entries(popalist.pages.labels).some(([key, value]) => {
+                        return value.some((url) => {
+                            return url.split("//")[1] == link.split("//")[1];
+                        });
+                    }) ||
+                    Object.entries(popalist.posts.labels).some(([key, value]) => {
+                        return value.some((url) => {
+                            return url.split("//")[1] == link.split("//")[1];
+                        });
+                    })
+                )
+                    if (!new URL(link).pathname.startsWith("/p"))
                         parsedContent.content = parsedContent.content.replace(
                             new RegExp(`${link}`, "g"),
                             `../../posts/${key}/${key}.html`
                         );
-                    else if (!args["no-pages"].used)
+                    else {
                         parsedContent.content = parsedContent.content.replace(
                             new RegExp(`${link}`, "g"),
                             `../../pages/${key}/${key}.html`
                         );
+                    }
             });
         }
 

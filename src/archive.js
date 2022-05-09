@@ -98,12 +98,16 @@ module.exports = class Archive {
 
         let labels = {};
 
+        labels.none = [];
+
         json.items.forEach((post) => {
-            if (post.labels)
+            if (post.labels) {
                 post.labels.forEach((label) => {
                     if (!labels[label]) labels[label] = [];
                     labels[label].push(post.url);
                 });
+                if (post.labels.length == 0) labels.none.push(post.url);
+            } else labels.none.push(post.url);
         });
 
         json.labels = labels;
@@ -123,8 +127,10 @@ module.exports = class Archive {
         console.log("Posts found: " + json.items.length);
         console.log("");
 
-        fs.writeFileSync(`${this.path}/${this.name}/posts.json`, JSON.stringify(postsfile));
+        if (this.args.json.used)
+            fs.writeFileSync(`${this.path}/${this.name}/posts.json`, JSON.stringify(postsfile));
 
+        this.posts = json;
         return json;
     }
 
@@ -155,11 +161,29 @@ module.exports = class Archive {
             };
         }
 
+        let labels = {};
+
+        labels.none = [];
+
+        json.items.forEach((post) => {
+            if (post.labels) {
+                post.labels.forEach((label) => {
+                    if (!labels[label]) labels[label] = [];
+                    labels[label].push(post.url);
+                });
+                if (post.labels.length == 0) labels.none.push(post.url);
+            } else labels.none.push(post.url);
+        });
+
+        json.labels = labels;
+
         console.log("Pages found: " + (json.items ? json.items.length : 0));
         console.log("");
 
-        fs.writeFileSync(`${this.path}/${this.name}/pages.json`, JSON.stringify(pagesfile));
+        if (this.args.json.used)
+            fs.writeFileSync(`${this.path}/${this.name}/pages.json`, JSON.stringify(pagesfile));
 
+        this.pages = json;
         return json;
     }
 
@@ -192,7 +216,8 @@ module.exports = class Archive {
             pageData.content,
             pageName,
             this.blogUrl,
-            this.args
+            this.args,
+            { posts: this.posts, pages: this.pages }
         );
 
         if (!this.args["no-media"].used)
@@ -234,7 +259,7 @@ module.exports = class Archive {
 
         let pagejson = { data: pageData, parsed: parsedPage };
 
-        if (this.args["page-json"])
+        if (this.args.json.used)
             fs.writeFileSync(
                 `${this.path}/${this.name}/pages/${pageName}/${pageName}.json`,
                 JSON.stringify(pagejson)
@@ -264,7 +289,8 @@ module.exports = class Archive {
             postData.content,
             postName,
             this.blogUrl,
-            this.args
+            this.args,
+            { posts: this.posts, pages: this.pages }
         );
 
         if (!this.args["no-media"].used)
@@ -340,7 +366,7 @@ module.exports = class Archive {
                 );
         }
 
-        if (this.args["post-json"])
+        if (this.args.json.used)
             fs.writeFileSync(
                 `${this.path}/${this.name}/posts/${postName}/${postName}.json`,
                 JSON.stringify(postjson)
@@ -405,6 +431,8 @@ module.exports = class Archive {
                 await this.addPage(pages[index]);
             }
     }
+
+    async createOverview(posts, pages) {}
 
     convertUrlToLocalPostUrl(url) {
         let postName = url.split("/").pop().split(".")[0];

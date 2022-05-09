@@ -13,6 +13,7 @@ const args = {
     replies: { needsArgument: false, data: undefined, used: false },
     limit: { needsArgument: true, data: undefined, used: false },
     info: { needsArgument: false, data: undefined, used: false },
+    json: { needsArgument: false, data: undefined, used: false },
     key: { needsArgument: true, data: undefined, used: false },
     override: { needsArgument: false, data: undefined, used: false },
     "no-media": { needsArgument: false, data: undefined, used: false },
