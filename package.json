@@ -17,7 +17,7 @@
   "license": "ISC",
   "description": "blogger-dl is a downloader for all blogs using the blogger API",
   "dependencies": {
-    "fs": "^0.0.1-security",
+    "fs": "^0.0.2",
     "https": "^1.0.0"
   }
 }
